@@ -2,8 +2,9 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,9 +21,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Paksa HTTPS di environment production (Railway, dll)
-        if (app()->environment('production')) {
+        if ($this->app->environment('production')) {
+            // Paksa semua URL menggunakan HTTPS
             URL::forceScheme('https');
+
+            // Jalankan storage:link jika belum ada symlink
+            $publicStoragePath = public_path('storage');
+            if (!is_link($publicStoragePath)) {
+                try {
+                    Artisan::call('storage:link');
+                } catch (\Exception $e) {
+                    // Supaya tidak error saat deploy
+                }
+            }
         }
     }
 }
