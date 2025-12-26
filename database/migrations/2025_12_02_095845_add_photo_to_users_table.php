@@ -9,9 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('photo')->nullable()->after('email');
+            if (!Schema::hasColumn('users', 'photo')) {   // CEK DULU
+                $table->string('photo')->nullable()->after('email');
+            }
         });
     }
+
 
     public function down(): void
     {
