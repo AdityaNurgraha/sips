@@ -1,7 +1,4 @@
-# ===============================
-# PHP 8.2 + Apache
-# ===============================
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -11,43 +8,32 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libonig-dev \
-    libxml2-dev \
+    libzip-dev \
+    zip \
     fontconfig \
     fonts-dejavu \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd mbstring zip pdo pdo_mysql \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Enable PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
-        gd \
-        mbstring \
-        pdo \
-        pdo_mysql \
-        xml \
-        iconv
-
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
-
-# Install Composer (OFFICIAL WAY)
+# Install Composer (INI BAGIAN PENTING)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Set working directory
-WORKDIR /var/www/html
+WORKDIR /app
 
-# Copy project files
+# Copy project
 COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions (Laravel)
-RUN chown -R www-data:www-data \
-    /var/www/html/storage \
-    /var/www/html/bootstrap/cache
+# Laravel permissions
+RUN chown -R www-data:www-data storage bootstrap/cache
 
 # Expose port
-EXPOSE 80
+EXPOSE 8080
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Start Laravel
+CMD php artisan serve --host=0.0.0.0 --port=8080
