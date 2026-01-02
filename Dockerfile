@@ -4,6 +4,7 @@ FROM php:8.2-fpm
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
+    curl \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -12,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     zip \
     fontconfig \
     fonts-dejavu \
+    nodejs \
+    npm \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd mbstring zip pdo pdo_mysql \
     && apt-get clean \
@@ -23,14 +26,14 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY . .
 
-# Install dependencies
+# Install PHP deps
 RUN composer install --no-dev --optimize-autoloader
 
-# Storage permissions
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Install Node deps & build Vite 🔥
+RUN npm install && npm run build
 
-# 🔴 INI YANG PENTING UNTUK FOTO PROFIL
-RUN php artisan storage:link
+# Permissions
+RUN chown -R www-data:www-data storage bootstrap/cache public/build
 
 EXPOSE 8080
 
