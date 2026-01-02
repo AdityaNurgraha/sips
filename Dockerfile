@@ -1,6 +1,8 @@
 FROM php:8.2-fpm
 
-# Install system dependencies
+# =========================
+# Install system packages
+# =========================
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -10,30 +12,52 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libzip-dev \
     zip \
+    curl \
     fontconfig \
     fonts-dejavu \
+    nodejs \
+    npm \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd mbstring zip pdo pdo_mysql \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer (INI BAGIAN PENTING)
+# =========================
+# Install Composer
+# =========================
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# =========================
+# Workdir
+# =========================
 WORKDIR /app
 
+# =========================
 # Copy project
+# =========================
 COPY . .
 
-# Install PHP dependencies
+# =========================
+# Install PHP deps
+# =========================
 RUN composer install --no-dev --optimize-autoloader
 
-# Laravel permissions
-RUN chown -R www-data:www-data storage bootstrap/cache
+# =========================
+# Build Vite assets (INI KUNCI)
+# =========================
+RUN npm install && npm run build
 
+# =========================
+# Laravel permissions
+# =========================
+RUN chown -R www-data:www-data storage bootstrap/cache public/build
+
+# =========================
 # Expose port
+# =========================
 EXPOSE 8080
 
-# Start Laravel
+# =========================
+# Run Laravel
+# =========================
 CMD php artisan serve --host=0.0.0.0 --port=8080
