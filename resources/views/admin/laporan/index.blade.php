@@ -17,9 +17,9 @@
 
                 <!-- Input Manual -->
                 <div>
-                    <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1">Cari (Nama / NISN / Kelas)</label>
+                    <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1">Cari (Nama / NISN)</label>
                     <input type="text" id="keyword" name="keyword" value="{{ old('keyword', $keyword) }}"
-                           placeholder="Ketik nama siswa, NISN, atau kelas..."
+                           placeholder="Ketik nama siswa, NISN"
                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
                 </div>
 
